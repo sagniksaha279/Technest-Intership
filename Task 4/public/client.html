@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Socket.IO Chat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="chat-container">
+    <header>
+      <h2>💬 Real-Time Chat</h2>
+    </header>
+
+    <section class="room-section">
+      <input id="roomInput" type="text" placeholder="Enter room name..." />
+      <button onclick="joinRoom()">Join Room</button>
+    </section>
+
+    <section class="chat-box">
+      <div id="messages"></div>
+    </section>
+
+    <section class="input-section">
+      <input id="messageInput" type="text" placeholder="Type a message..." />
+      <button onclick="sendMessage()">Send</button>
+    </section>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const messagesDiv = document.getElementById('messages');
+    let currentRoom = null;
+
+    function joinRoom() {
+      const room = document.getElementById('roomInput').value;
+      if (room) {
+        socket.emit('joinRoom', room);
+        currentRoom = room;
+        addMessage(`✅ Joined room: ${room}`, "system");
+      }
+    }
+
+    function sendMessage() {
+      const msg = document.getElementById('messageInput').value;
+      if (msg && currentRoom) {
+        socket.emit('message', { room: currentRoom, text: msg });
+        document.getElementById('messageInput').value = "";
+      }
+    }
+
+    socket.on('message', (data) => {
+      addMessage(`${data.time} - ${data.text}`, "chat");
+    });
+
+    function addMessage(text, type) {
+      const msgEl = document.createElement('div');
+      msgEl.className = `message ${type}`;
+      msgEl.textContent = text;
+      messagesDiv.appendChild(msgEl);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+  </script>
+</body>
+</html>
